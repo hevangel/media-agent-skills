@@ -1,0 +1,65 @@
+{
+  "name": "ai-agents-skills",
+  "owner": {
+    "name": "hevangel",
+    "email": "git@hevangel.com"
+  },
+  "metadata": {
+    "description": "A collection of AI agent skills for managing media libraries, downloading content, and automating workflows.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "media-server-skills",
+      "description": "Skills for interacting with Plex, Jellyfin, Audiobookshelf, and Kavita media servers - list libraries, search media, manage metadata, and trigger rescans.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/plex",
+        "./skills/jellyfin",
+        "./skills/audiobookshelf",
+        "./skills/kavita"
+      ]
+    },
+    {
+      "name": "torrent-skills",
+      "description": "Skills for searching and downloading torrents from nyaa.si (anime), YTS/YIFY (movies), and managing downloads via qBittorrent.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/nyaa",
+        "./skills/yify",
+        "./skills/qbittorrent"
+      ]
+    },
+    {
+      "name": "ebook-skills",
+      "description": "Skills for EPUB metadata management, cover art embedding, and downloading ebooks from Library Genesis.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/ebook",
+        "./skills/libgen"
+      ]
+    },
+    {
+      "name": "audiobook-skills",
+      "description": "Skills for audiobook library management, cover art downloading, metadata embedding, and AudiobookBay/Audiobookshelf integration.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/audiobooks",
+        "./skills/audiobookshelf"
+      ]
+    },
+    {
+      "name": "ai-tools",
+      "description": "Skills for programmatically using GitHub Copilot SDK from Python applications.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/copilot-sdk"
+      ]
+    }
+  ]
+}
