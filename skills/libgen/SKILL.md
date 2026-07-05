@@ -80,7 +80,7 @@ $EBOOK_LIBRARY_PATH/
 
 - **Connection Reset / SSL Errors**: ISP blocking — enable VPN and retry.
 - **CAPTCHA**: Use libgen.li directly instead of Anna's Archive.
-- **Download Corrupted**: Use Playwright browser automation instead of direct HTTP requests.
+- **Download Corrupted**: Use Playwright browser automation instead of direct HTTP requests (`playwright_download.py`, [Webwright](https://github.com/microsoft/Webwright) via the **microsoft/Webwright** plugin first, then [Playwright CLI](https://www.npmjs.com/package/@playwright/cli) as fallback — see `scripts/README.md`).
 
 ## Notes
 

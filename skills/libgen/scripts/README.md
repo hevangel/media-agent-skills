@@ -46,14 +46,49 @@ uv run playwright_download.py 0e5d19a33afebc900650bb582ad4df6a --output "./downl
 uv run playwright_download.py 0e5d19a33afebc900650bb582ad4df6a --output "./downloads" --headless
 ```
 
-### Download via MCP Playwright (Agent Mode)
+### Agent-mode browser download: Webwright (preferred), Playwright CLI (fallback)
 
-When using the AI agent with Playwright MCP tools:
+When an agent should drive the browser from the terminal (not Playwright MCP), use this order:
 
-1. Search for the book to get its MD5 hash
-2. Navigate to `https://libgen.li/ads.php?md5=<MD5_HASH>`
-3. Click the "GET" button at the top
-4. If connection fails, enable VPN and try again
+1. **[Webwright](https://github.com/microsoft/Webwright)** — Microsoft’s terminal-native harness: a coding-agent loop that writes Playwright Python scripts, saves trajectories and screenshots, and fits **multi-step** flows (forms, mirrors, retries). **Install it through your agent’s plugin marketplace** (no Git clone and no `pip install -e .` from source):
+
+   - **Claude Code:** `/plugin marketplace add microsoft/Webwright` then `/plugin install webwright@webwright` — use `/webwright:run` / `/webwright:craft` or plain English; see the [Webwright README](https://github.com/microsoft/Webwright/blob/main/README.md).
+   - **OpenAI Codex:** `codex plugin marketplace add microsoft/Webwright`, then install **webwright** from the plugins UI; invoke with `@webwright` or natural language (same README).
+   - **OpenClaw, Hermes, etc.:** follow the “Install” sections in that README (`openclaw plugins install …`, symlink `skills/webwright`, …).
+
+   Example (after the plugin is installed — adjust for your host’s slash-command style):
+
+   ```text
+   /webwright:run Open https://libgen.li/ads.php?md5=<MD5_HASH>, use the top GET link to finish the download, and save the file under temp/libgen_downloads.
+   ```
+
+   Configuration and API keys follow **upstream Webwright** docs (the plugin bundles the harness; you do not need to vendor this repo’s source).
+
+2. **[Playwright CLI](https://www.npmjs.com/package/@playwright/cli)** (`playwright-cli`) — **fallback** when Webwright is not available, or you only need a **few deterministic** steps (`open` → `snapshot` → `click`). Token-efficient micro-commands; no agent loop.
+
+**Playwright CLI** (Node.js 18+):
+
+```bash
+npm install -g @playwright/cli@latest
+playwright-cli --help
+# Optional: bundled agent skills
+playwright-cli install --skills
+# Or: npx @playwright/cli@latest --help
+```
+
+Typical LibGen flow with **playwright-cli** only:
+
+```bash
+playwright-cli open "https://libgen.li/ads.php?md5=<MD5_HASH>"
+playwright-cli snapshot
+playwright-cli click <ref>   # ref for the top "GET" link from the snapshot
+```
+
+If the download opens a new tab: `playwright-cli tab-list` / `playwright-cli tab-select <index>`. If the connection fails, use a VPN and retry.
+
+Prefer **`playwright_download.py`** when automation should stay inside this repo’s **Python/uv** stack without either harness above.
+
+> **Note:** The PyPI project named [`webwright`](https://pypi.org/project/webwright/) is **not** Microsoft Webwright. Prefer the **plugin install** above; do not `pip install webwright` expecting Microsoft’s harness.
 
 ### Manual Download URLs
 

@@ -1,8 +1,9 @@
 """
-Download a book from Library Genesis by MD5 hash.
+Print LibGen download URLs and manual steps for a book MD5 hash.
 
-This script uses Playwright browser automation to handle the download,
-which is more reliable than direct HTTP requests due to anti-bot measures.
+For automated downloads use `playwright_download.py`, or drive the browser with
+Webwright (install via the `microsoft/Webwright` agent plugin — see `scripts/README.md`)
+and fall back to playwright-cli (@playwright/cli); this script only prints where to go and what to click.
 
 Usage:
     uv run download_book.py <md5_hash> --output "path/to/output.epub"
@@ -52,7 +53,7 @@ def print_manual_download_instructions(md5: str) -> None:
     print("\n" + "=" * 60)
     print("MANUAL DOWNLOAD INSTRUCTIONS")
     print("=" * 60)
-    print("\nAutomatic download requires browser automation (Playwright).")
+    print("\nAutomatic download requires browser automation (playwright_download.py, Webwright plugin, or playwright-cli).")
     print("To download manually, visit one of these URLs:\n")
     print(f"  1. {get_download_url(md5)}")
     print(f"     → Click the 'GET' button at the top\n")
@@ -91,15 +92,15 @@ def search_and_get_md5(title: str, author: str | None = None, format: str = "epu
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Download a book from Library Genesis",
-        epilog="Note: For reliable downloads, use browser automation via the MCP Playwright tools."
+        epilog="Note: For reliable downloads, use the Webwright plugin (microsoft/Webwright), playwright-cli (@playwright/cli), or playwright_download.py."
     )
     parser.add_argument("md5", help="MD5 hash of the book to download")
     parser.add_argument("--output", "-o", help="Output file path")
     
     args = parser.parse_args()
     
-    # Just print download instructions since browser automation
-    # requires the MCP Playwright tools which can't be called from scripts
+    # Just print download instructions: browser automation belongs in
+    # playwright_download.py or an agent using Webwright / playwright-cli, not this script.
     print(f"Book MD5: {args.md5}")
     print_manual_download_instructions(args.md5)
     

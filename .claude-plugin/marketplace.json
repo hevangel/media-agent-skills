@@ -23,12 +23,12 @@
     },
     {
       "name": "torrent-skills",
-      "description": "Skills for searching and downloading torrents from nyaa.si (anime), YTS/YIFY (movies), and managing downloads via qBittorrent.",
+      "description": "Skills for searching and downloading torrents from nyaa.si (anime), YTS (movies, ytz.mx), and managing downloads via qBittorrent.",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/nyaa",
-        "./skills/yify",
+        "./skills/yts",
         "./skills/qbittorrent"
       ]
     },

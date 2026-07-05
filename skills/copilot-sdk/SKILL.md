@@ -82,9 +82,9 @@ Your Application
 | `tool.call` | Tool invocation |
 | `error` | Error event |
 
-## Available Models
+## Available Free Models
 
-- `gpt-4.1`, `gpt-5`, `claude-sonnet-4.5`, `o3-mini`, `gemini-2.5-pro`
+- `gpt-5-mini`
 
 ## Basic Usage
 

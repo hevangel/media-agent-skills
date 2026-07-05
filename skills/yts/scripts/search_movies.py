@@ -1,19 +1,28 @@
 """
-Search for movies on YTS/YIFY
+Search for movies on YTS (YIFY-style releases).
 
 Usage:
-    uv run python skills/yify/code_snippet/search_movies.py "Inception"
-    uv run python skills/yify/code_snippet/search_movies.py "Dune" --quality 1080p --min-rating 7
-    uv run python skills/yify/code_snippet/search_movies.py --genre sci-fi --sort seeds --limit 10
+    uv run python skills/yts/scripts/search_movies.py "Inception"
+    uv run python skills/yts/scripts/search_movies.py "Dune" --quality 1080p --min-rating 7
+    uv run python skills/yts/scripts/search_movies.py --genre sci-fi --sort seeds --limit 10
 """
 
 import argparse
+import os
 import requests
 from urllib.parse import quote
 
 
-# YTS API base URL (may need to be updated if domain changes)
-YTS_API_BASE = "https://yts.mx/api/v2"
+def _yts_api_base_candidates() -> list[str]:
+    """Ordered list of API base URLs (no trailing slash)."""
+    env = os.environ.get("YTS_API_BASE", "").strip().rstrip("/")
+    if env:
+        return [env]
+    return [
+        "https://ytz.mx/api/v2",
+        "https://yts.lt/api/v2",
+        "https://yts.mx/api/v2",
+    ]
 
 # Trackers for building magnet links
 TRACKERS = [
@@ -60,7 +69,7 @@ def search_movies(
     Returns:
         List of movie dictionaries
     """
-    print(f"Searching YTS for movies...")
+    print(f"Searching YTS for movies (API candidates: {_yts_api_base_candidates()})...")
     if query:
         print(f"  Query: {query}")
     if quality:
@@ -86,24 +95,29 @@ def search_movies(
     if genre:
         params["genre"] = genre
     
-    try:
-        response = requests.get(f"{YTS_API_BASE}/list_movies.json", params=params, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        
+    bases = _yts_api_base_candidates()
+    last_error: Exception | None = None
+    for base in bases:
+        try:
+            response = requests.get(f"{base}/list_movies.json", params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+        except (requests.RequestException, ValueError) as e:
+            last_error = e
+            print(f"[progress] API attempt failed for {base}: {e}")
+            continue
+
         if data["status"] != "ok":
-            print(f"API Error: {data.get('status_message', 'Unknown error')}")
+            print(f"API Error ({base}): {data.get('status_message', 'Unknown error')}")
             return []
-        
+
         movies = data.get("data", {}).get("movies", [])
         movie_count = data.get("data", {}).get("movie_count", 0)
-        
-        print(f"Found {movie_count} total movies, showing {len(movies)}")
+        print(f"Found {movie_count} total movies, showing {len(movies)} (via {base})")
         return movies
-        
-    except requests.RequestException as e:
-        print(f"Request error: {e}")
-        return []
+
+    print(f"Request error: {last_error}")
+    return []
 
 
 def print_results(movies: list, show_magnets: bool = False) -> None:
@@ -130,7 +144,7 @@ def print_results(movies: list, show_magnets: bool = False) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Search YTS/YIFY for movie torrents")
+    parser = argparse.ArgumentParser(description="Search YTS for movie torrents")
     parser.add_argument("query", nargs="?", help="Search query (movie title, IMDb code, actor)")
     parser.add_argument("--quality", "-q", choices=["720p", "1080p", "2160p", "3D"],
                         help="Filter by quality")

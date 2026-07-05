@@ -10,13 +10,15 @@ A collection of [Agent Skills](https://agentskills.io/) for managing media libra
 | [audiobookshelf](skills/audiobookshelf/) | Audiobookshelf server API — libraries, metadata, authors, rescans |
 | [copilot-sdk](skills/copilot-sdk/) | GitHub Copilot SDK — programmatically call Copilot from Python |
 | [ebook](skills/ebook/) | EPUB metadata extraction, updates, cover embedding, series info |
+| [imdb](skills/imdb/) | IMDB lookup — search movies/TV/people, popular & upcoming titles |
 | [jellyfin](skills/jellyfin/) | Jellyfin server API — libraries, search, metadata, rescans |
 | [kavita](skills/kavita/) | Kavita reading server API — libraries, series, metadata, rescans |
 | [libgen](skills/libgen/) | Search and download ebooks from Library Genesis |
 | [nyaa](skills/nyaa/) | Search and download anime torrents from nyaa.si |
 | [plex](skills/plex/) | Plex Media Server API — libraries, search, playlists, collections |
 | [qbittorrent](skills/qbittorrent/) | qBittorrent client — add, pause, resume, delete torrents |
-| [yify](skills/yify/) | Search and download movie torrents from YTS/YIFY |
+| [tvdb](skills/tvdb/) | TheTVDB lookup — search series/movies/people, episodes, seasons, artwork |
+| [yts](skills/yts/) | Search and download movie torrents from YTS ([ytz.mx](https://ytz.mx/)) |
 
 ## Quick Start
 

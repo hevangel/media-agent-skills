@@ -1,28 +1,35 @@
 """
-Download a movie from YTS/YIFY by adding it to qBittorrent
+Download a movie from YTS by adding it to qBittorrent.
 
 Usage:
-    uv run python skills/yify/scripts/download_movie.py "Inception" --save-path "./downloads"
-    uv run python skills/yify/scripts/download_movie.py "Dune" --quality 1080p --save-path "./downloads"
-    uv run python skills/yify/scripts/download_movie.py "Oppenheimer" --index 0 --quality 2160p -o "./downloads"
+    uv run python skills/yts/scripts/download_movie.py "Inception" --save-path "./downloads"
+    uv run python skills/yts/scripts/download_movie.py "Dune" --quality 1080p --save-path "./downloads"
+    uv run python skills/yts/scripts/download_movie.py "Oppenheimer" --index 0 --quality 2160p -o "./downloads"
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from urllib.parse import quote
 
 import requests
 
-# Add project root to path for imports
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
+_repo_root = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(_repo_root / "skills" / "qbittorrent" / "scripts"))
 
-from qbittorrent_skill.code_snippet.qbittorrent_client import get_client, add_magnet
+from qbittorrent_client import get_client, add_magnet
 
 
-# YTS API base URL
-YTS_API_BASE = "https://yts.mx/api/v2"
+def _yts_api_base_candidates() -> list[str]:
+    env = os.environ.get("YTS_API_BASE", "").strip().rstrip("/")
+    if env:
+        return [env]
+    return [
+        "https://ytz.mx/api/v2",
+        "https://yts.lt/api/v2",
+        "https://yts.mx/api/v2",
+    ]
 
 # Trackers for building magnet links
 TRACKERS = [
@@ -55,19 +62,25 @@ def search_movies(query: str, quality: str = None, limit: int = 10) -> list:
     if quality:
         params["quality"] = quality
     
-    try:
-        response = requests.get(f"{YTS_API_BASE}/list_movies.json", params=params, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        
+    bases = _yts_api_base_candidates()
+    last_error: Exception | None = None
+    for base in bases:
+        try:
+            response = requests.get(f"{base}/list_movies.json", params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+        except (requests.RequestException, ValueError) as e:
+            last_error = e
+            print(f"[progress] API attempt failed for {base}: {e}")
+            continue
+
         if data["status"] != "ok":
             return []
-        
+
         return data.get("data", {}).get("movies", [])
-        
-    except requests.RequestException as e:
-        print(f"Request error: {e}")
-        return []
+
+    print(f"Request error: {last_error}")
+    return []
 
 
 def search_and_download(
@@ -151,7 +164,7 @@ def search_and_download(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Search YTS/YIFY and add movie torrent to qBittorrent"
+        description="Search YTS and add movie torrent to qBittorrent"
     )
     parser.add_argument("query", help="Search query (movie title)")
     parser.add_argument("--save-path", "-o", required=True,
