@@ -71,8 +71,10 @@ EPUB files are ZIP archives containing:
 ### Extract Metadata
 
 ```python
-from skills.ebook.scripts.extract_metadata import extract_epub_metadata, scan_epub_files
+import os
 from pathlib import Path
+
+from skills.ebook.scripts.extract_metadata import extract_epub_metadata, scan_epub_files
 
 metadata = extract_epub_metadata(Path("book.epub"))
 all_metadata = scan_epub_files(Path(os.environ["EBOOK_LIBRARY_PATH"]))

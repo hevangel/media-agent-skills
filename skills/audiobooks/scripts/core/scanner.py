@@ -4,6 +4,7 @@ Scans audiobook directories and identifies missing covers.
 """
 
 import json
+import os
 from pathlib import Path
 from typing import List, Optional
 from dataclasses import dataclass, asdict
@@ -183,6 +184,9 @@ class AudiobookScanner:
         with_embedded = sum(1 for ab in self.audiobooks if ab.has_embedded_cover)
         with_any = sum(1 for ab in self.audiobooks if ab.has_cover or ab.has_embedded_cover)
         without_covers = total - with_any
+
+        if total == 0:
+            return "# Audiobook Cover Scan Report\n\nNo audiobooks found in library."
 
         report = f"""
 # Audiobook Cover Scan Report

@@ -1,0 +1,13 @@
+{
+  "name": "libgen",
+  "version": "1.0.0",
+  "description": "Search and download ebooks from Library Genesis (LibGen). Use when the user needs to find or download ebooks, EPUBs, or PDFs from LibGen.",
+  "category": "ebooks",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

@@ -77,3 +77,7 @@ if results:
     client = get_client()
     add_magnet(client, results[0].magnet)
 ```
+
+## Notes
+
+- Temporary files go in `$WORKSPACE_PATH/temp/`.

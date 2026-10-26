@@ -310,7 +310,7 @@ def main():
         {'isbn': '9780545060479', 'filename': '05_black_circle.jpg'},
     ]
     
-    output_dir = Path(r"c:\Users\hevan\work\ai_agents\temp\covers")
+    output_dir = Path(r"/path/to/covers")
     
     print("Downloading covers...")
     result = download_covers_batch(books, output_dir)

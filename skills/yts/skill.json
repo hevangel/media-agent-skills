@@ -1,0 +1,13 @@
+{
+  "name": "yts",
+  "version": "1.0.0",
+  "description": "Search and download movie torrents from YTS (YIFY releases). Use when the user needs to find or download movie torrents with quality and rating filters.",
+  "category": "downloads",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

@@ -96,7 +96,7 @@ def scan_epub_files(directory: Path, show_progress: bool = True) -> List[Dict[st
 def main():
     """Extract metadata from all EPUBs in a directory and save to JSON."""
     # Directory containing EPUB files
-    epub_directory = Path(r"E:\ebook\Calibre Library")
+    epub_directory = Path(r"/path/to/calibre-library")
     
     if not epub_directory.exists():
         print(f"Error: Directory does not exist: {epub_directory}")

@@ -183,7 +183,7 @@ def main():
     """Example: Update series metadata for EPUB files."""
     
     # Example 1: Update single book
-    epub_path = Path(r"E:\ebook\Calibre Library\Frank Herbert\Dune (1)\Dune - Frank Herbert.epub")
+    epub_path = Path(r"/path/to/calibre-library/Frank Herbert/Dune - Frank Herbert.epub")
     
     if epub_path.exists():
         print("="*80)

@@ -1,0 +1,13 @@
+{
+  "name": "nyaa",
+  "version": "1.0.0",
+  "description": "Search and download anime torrents from nyaa.si. Use when the user needs to find anime, manga, or East Asian media torrents.",
+  "category": "downloads",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

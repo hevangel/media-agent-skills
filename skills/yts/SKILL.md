@@ -9,12 +9,12 @@ compatibility: Requires Python 3.13+, uv, and pyYify
 
 YTS is a popular movie torrent site known for high-quality releases with small file sizes. All movies include multiple quality options (720p, 1080p, 2160p/4K).
 
-**Site:** [https://ytz.mx/](https://ytz.mx/) — API calls try this host first, then common mirrors (`yts.lt`, `yts.mx`) unless you set **`YTS_API_BASE`** (no trailing slash; include `/api/v2`).
+**Site:** [https://yts.mx/](https://yts.mx/) — API calls try this host first, then the `yts.lt` mirror unless you set **`YTS_API_BASE`** (no trailing slash; include `/api/v2`).
 
 ## Reference
 
 - Code Snippets: `scripts/`
-- YTS API: `search_movies.py` tries `ytz.mx`, then `yts.lt`, then `yts.mx`, or set **`YTS_API_BASE`**
+- YTS API: `search_movies.py` tries `yts.mx`, then `yts.lt`, or set **`YTS_API_BASE`**
 - qBittorrent Integration: See the `qbittorrent` skill
 
 ## Python Package
@@ -56,9 +56,9 @@ for movie in movies:
 import os
 import requests
 
-base = os.environ.get("YTS_API_BASE")  # e.g. https://ytz.mx/api/v2
+base = os.environ.get("YTS_API_BASE")  # e.g. https://yts.mx/api/v2
 if not base:
-    for candidate in ("https://ytz.mx/api/v2", "https://yts.lt/api/v2", "https://yts.mx/api/v2"):
+    for candidate in ("https://yts.mx/api/v2", "https://yts.lt/api/v2"):
         try:
             r = requests.get(f"{candidate}/list_movies.json", params={"limit": 1}, timeout=15)
             r.json()
@@ -67,7 +67,7 @@ if not base:
         except Exception:
             continue
 if not base:
-    base = "https://ytz.mx/api/v2"
+    base = "https://yts.mx/api/v2"
 url = f"{base}/list_movies.json"
 params = {"query_term": "Inception", "quality": "1080p", "sort_by": "seeds", "limit": 10}
 response = requests.get(url, params=params)

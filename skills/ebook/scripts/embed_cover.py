@@ -206,8 +206,8 @@ def main():
     from pathlib import Path
     
     # Example usage
-    epub_path = Path(r"E:\ebook\example.epub")
-    cover_path = Path(r"c:\covers\example_cover.jpg")
+    epub_path = Path(r"/path/to/example.epub")
+    cover_path = Path(r"/path/to/example_cover.jpg")
     
     if epub_path.exists() and cover_path.exists():
         print(f"Embedding cover into: {epub_path.name}")

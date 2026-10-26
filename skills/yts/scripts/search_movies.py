@@ -19,9 +19,8 @@ def _yts_api_base_candidates() -> list[str]:
     if env:
         return [env]
     return [
-        "https://ytz.mx/api/v2",
-        "https://yts.lt/api/v2",
         "https://yts.mx/api/v2",
+        "https://yts.lt/api/v2",
     ]
 
 # Trackers for building magnet links

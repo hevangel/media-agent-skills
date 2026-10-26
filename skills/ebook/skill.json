@@ -1,0 +1,13 @@
+{
+  "name": "ebook",
+  "version": "1.0.0",
+  "description": "Work with EPUB files - extract, update, and manage metadata, download and embed covers, update series info. Use when handling EPUB ebook libraries or metadata.",
+  "category": "ebooks",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

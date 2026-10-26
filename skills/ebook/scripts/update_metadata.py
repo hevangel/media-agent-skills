@@ -166,7 +166,7 @@ def extract_opf_metadata(epub_path: Union[str, Path]) -> Dict[str, Any]:
 def main():
     """Example: Update metadata for specific EPUB files."""
     # Example 1: Update single author
-    epub1_path = Path(r"E:\ebook\Calibre Library\libgen.li\The end of indexing (318)\The end of indexing - libgen.li.epub")
+    epub1_path = Path(r"/path/to/calibre-library/Author/Book Title - Author.epub")
     
     if epub1_path.exists():
         print("="*80)
@@ -180,7 +180,7 @@ def main():
         update_epub_metadata(epub1_path, metadata1)
     
     # Example 2: Update multiple authors
-    epub2_path = Path(r"E:\ebook\Calibre Library\Gene Kim\The DevOps Handbook_ How to Create (262)\The DevOps Handbook_ How to Cre - Gene Kim.epub")
+    epub2_path = Path(r"/path/to/calibre-library/Author/Second Book Title - Author.epub")
     
     if epub2_path.exists():
         print("\n" + "="*80)

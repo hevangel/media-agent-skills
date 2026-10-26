@@ -1,0 +1,13 @@
+{
+  "name": "audiobookshelf",
+  "version": "1.0.0",
+  "description": "Interact with the Audiobookshelf API to manage audiobook libraries, update metadata, scan directories, and manage authors. Use when working with Audiobookshelf server instances.",
+  "category": "media",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

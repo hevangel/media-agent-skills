@@ -48,16 +48,16 @@ AUDIOBOOKS_PATH=/path/to/audiobooks
 
 ```bash
 # Scan library for missing covers
-uv run python skills/audiobooks/scripts/cover_manager.py scan --report
+uv run python skills/audiobooks/scripts/cli/cover_manager.py scan --report
 
 # List missing covers
-uv run python skills/audiobooks/scripts/cover_manager.py list --by-author
+uv run python skills/audiobooks/scripts/cli/cover_manager.py list --by-author
 
 # Process a specific book (download & embed)
-uv run python skills/audiobooks/scripts/cover_manager.py process -i <INDEX> -u "<IMAGE_URL>"
+uv run python skills/audiobooks/scripts/cli/cover_manager.py process -i <INDEX> -u "<IMAGE_URL>"
 
 # Embed existing cover into files
-uv run python skills/audiobooks/scripts/cover_manager.py embed -c cover.jpg -a "$AUDIOBOOKS_PATH/Author/Title"
+uv run python skills/audiobooks/scripts/cli/cover_manager.py embed -c cover.jpg -a "$AUDIOBOOKS_PATH/Author/Title"
 ```
 
 ## Python Module Structure

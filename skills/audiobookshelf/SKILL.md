@@ -33,10 +33,11 @@ AUDIOBOOKSHELF_PASSWORD=your_password
 | `api_client.py` | Common client setup patterns (async and sync) |
 | `list_libraries.py` | List all libraries from the server |
 | `get_library_items.py` | Get books with filtering by author/series |
+| `dump_library_to_json.py` | Export all books from a library to JSON |
 | `search_authors.py` | Search and manage authors |
 | `update_book_metadata.py` | Update book metadata via PATCH API |
-| `scan_libraries.py` | Trigger library rescans |
 | `update_audio_metadata.py` | Update local audio file metadata using mutagen |
+| `scan_libraries.py` | Trigger library rescans |
 | `scan_audiobook_directory.py` | Scan local directories for audiobook info |
 
 ## Key Patterns

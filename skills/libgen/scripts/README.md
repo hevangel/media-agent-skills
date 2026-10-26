@@ -101,10 +101,10 @@ uv run download_book.py 0e5d19a33afebc900650bb582ad4df6a
 
 ```bash
 # Organize a downloaded file into Author/Title structure
-uv run organize_download.py "downloaded_book.epub" --library "E:\ebook\Youth Novels"
+uv run organize_download.py "downloaded_book.epub" --library "/path/to/ebook/library"
 
 # Override author/title if auto-detection fails
-uv run organize_download.py "book.epub" --library "E:\ebook\Youth Novels" \
+uv run organize_download.py "book.epub" --library "/path/to/ebook/library" \
     --author "Rick Riordan" --title "Wrath of the Triple Goddess"
 ```
 
@@ -161,7 +161,7 @@ dest = organize_ebook(
     library_path=os.environ["EBOOK_LIBRARY_PATH"]
 )
 print(f"Organized to: {dest}")
-# Output: E:\ebook\Youth Novels\Rick Riordan\Wrath of the Triple Goddess\Wrath of the Triple Goddess - Rick Riordan.epub
+# Output: /path/to/ebook/library/Rick Riordan/Wrath of the Triple Goddess/Wrath of the Triple Goddess - Rick Riordan.epub
 
 # With explicit author/title
 dest = organize_ebook(

@@ -1,0 +1,13 @@
+{
+  "name": "audiobooks",
+  "version": "1.0.0",
+  "description": "Manage audiobook libraries, download missing covers, organize metadata, embed cover art, and download from AudiobookBay. Use when working with audiobook libraries, cover images, or AudiobookBay searches.",
+  "category": "audiobooks",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}
