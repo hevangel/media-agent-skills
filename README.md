@@ -1,6 +1,15 @@
 # AI Agents
 
+[![skills.sh](https://skills.sh/b/hevangel/media-agent-skills)](https://skills.sh/hevangel/media-agent-skills)
+
 A collection of [Agent Skills](https://agentskills.io/) for managing media libraries, downloading content, and automating workflows. Skills follow the open [Agent Skills specification](https://agentskills.io/specification) and work with any compatible AI coding agent.
+
+### Install via skills.sh
+
+```bash
+npx skills add hevangel/media-agent-skills            # all skills
+npx skills add hevangel/media-agent-skills@plex       # a single skill
+```
 
 ## Skills
 
@@ -11,6 +20,7 @@ A collection of [Agent Skills](https://agentskills.io/) for managing media libra
 | [copilot-sdk](skills/copilot-sdk/) | GitHub Copilot SDK — programmatically call Copilot from Python |
 | [ebook](skills/ebook/) | EPUB metadata extraction, updates, cover embedding, series info |
 | [imdb](skills/imdb/) | IMDB lookup — search movies/TV/people, popular & upcoming titles |
+| [internetarchive](skills/internetarchive/) | Internet Archive — search books, capture BookReader pages to PNG/PDF |
 | [jellyfin](skills/jellyfin/) | Jellyfin server API — libraries, search, metadata, rescans |
 | [kavita](skills/kavita/) | Kavita reading server API — libraries, series, metadata, rescans |
 | [libgen](skills/libgen/) | Search and download ebooks from Library Genesis |

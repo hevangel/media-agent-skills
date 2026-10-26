@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "A collection of AI agent skills for managing media libraries, downloading content, and automating workflows.",
-    "version": "1.0.0"
+    "version": "0.3.0"
   },
   "plugins": [
     {
@@ -34,12 +34,13 @@
     },
     {
       "name": "ebook-skills",
-      "description": "Skills for EPUB metadata management, cover art embedding, and downloading ebooks from Library Genesis.",
+      "description": "Skills for EPUB metadata management, cover art embedding, and downloading ebooks from Library Genesis and the Internet Archive.",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/ebook",
-        "./skills/libgen"
+        "./skills/libgen",
+        "./skills/internetarchive"
       ]
     },
     {
