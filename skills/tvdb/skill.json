@@ -1,0 +1,13 @@
+{
+  "name": "tvdb",
+  "version": "1.0.0",
+  "description": "Search and retrieve TV series, movie, and people info from TheTVDB. Get details by ID, list episodes, seasons, and artwork. Use when looking up TV/movie metadata from TheTVDB.",
+  "category": "metadata",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

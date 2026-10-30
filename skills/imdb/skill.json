@@ -1,0 +1,13 @@
+{
+  "name": "imdb",
+  "version": "1.0.0",
+  "description": "Search IMDB for movies, TV series, and people. Get details by name or ID, browse upcoming/popular titles. Use when looking up movie/TV/celebrity info from IMDB.",
+  "category": "metadata",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

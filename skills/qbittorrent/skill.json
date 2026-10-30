@@ -1,0 +1,13 @@
+{
+  "name": "qbittorrent",
+  "version": "1.0.0",
+  "description": "Control qBittorrent via the qbittorrent-api Python package. List, add, pause, resume, and delete torrents. Use when managing torrent downloads.",
+  "category": "downloads",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

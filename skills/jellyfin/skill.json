@@ -1,0 +1,13 @@
+{
+  "name": "jellyfin",
+  "version": "1.0.0",
+  "description": "Interact with the Jellyfin media server API to list libraries, search media, get item details, export metadata, and trigger library rescans. Use when working with Jellyfin servers.",
+  "category": "media",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

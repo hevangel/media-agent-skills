@@ -1,0 +1,13 @@
+{
+  "name": "kavita",
+  "version": "1.0.0",
+  "description": "Interact with the Kavita reading server API to manage ebook/manga libraries, list series, get metadata, and trigger library rescans. Use when working with Kavita servers.",
+  "category": "media",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}

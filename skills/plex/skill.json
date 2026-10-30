@@ -1,0 +1,13 @@
+{
+  "name": "plex",
+  "version": "1.0.0",
+  "description": "Interact with a Plex Media Server to list libraries, search media, get item details, manage playlists and collections, export metadata, and trigger library rescans. Use when working with Plex servers.",
+  "category": "media",
+  "license": "MIT",
+  "platforms": ["claude-code", "cursor", "codex", "github-copilot"],
+  "author": {
+    "name": "hevangel",
+    "github": "hevangel"
+  },
+  "repository": "https://github.com/hevangel/media-agent-skills"
+}
