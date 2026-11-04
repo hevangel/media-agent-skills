@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "A collection of AI agent skills for managing media libraries, downloading content, and automating workflows.",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "plugins": [
     {
