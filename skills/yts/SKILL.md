@@ -27,6 +27,9 @@ YTS is a popular movie torrent site known for high-quality releases with small f
 |--------|---------|
 | `search_movies.py` | Search for movies by title, genre, rating |
 | `download_movie.py` | Add movie torrent to qBittorrent |
+| `movie_selector_server.py` | Serve the movie-selector web app + selection API |
+| `download_selected.py` | Add the web-app selected movies' torrents to qBittorrent |
+| `movie_selection_store.py` | Selection store module (JSON, shared server <-> script) |
 
 ## Search Parameters
 
@@ -86,6 +89,53 @@ if movies:
     client = get_client()
     add_magnet(client, torrent.magnet)
 ```
+
+## Movie Selector Web App
+
+A local web app (`assets/movie_selector/index.html`, served by
+`movie_selector_server.py`) for picking movies visually: a table with poster,
+screencap, plot summary, IMDb rating, and torrent links per quality.
+
+The browser queries the YTS API directly when it can (the API is
+CORS-enabled). When the YTS mirrors are unreachable from the browser's network
+(521s, ISP blocks), the page automatically falls back to the backend's
+`/api/movies` and `/api/img` endpoints, which fetch through the SSH SOCKS5
+tunnel pool (`CTFILE_PROXY_HOSTS` in `.env`, `ssh -D` tunnels via the
+tvboxnow `ssh_proxy_pool` module). Proxied requests are restricted to
+allowlisted YTS hosts (`yts.mx`, `yts.lt`, `yts.gg`, `movies-api.accel.li`),
+with resolved-IP checks against loopback/private/reserved ranges before every
+outbound request. Selections persist in
+`temp/yts_movie_selector/selection.json` (override with `YTS_SELECTION_PATH`).
+
+```bash
+# 1. Start the app (default http://127.0.0.1:8010)
+uv run python skills/yts/scripts/movie_selector_server.py
+uv run python skills/yts/scripts/movie_selector_server.py --port 8010 --host 127.0.0.1
+
+# 2. Open http://127.0.0.1:8011, search, and click a quality button to queue
+#    exactly that torrent (e.g. "＋ 1080p · 1.85 GB"; click ✓ to remove)
+
+# 3. Download everything queued - each entry uses the quality you queued
+uv run python skills/yts/scripts/download_selected.py
+uv run python skills/yts/scripts/download_selected.py --save-path /path/to/downloads
+uv run python skills/yts/scripts/download_selected.py --list        # show queue
+uv run python skills/yts/scripts/download_selected.py --dry-run     # print magnets only
+```
+
+### Selection API
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/selection` | GET | List selection (`?status=pending\|downloaded`) |
+| `/api/selection` | POST | Add a movie (JSON body: `{id, title, torrents: [...]}`) |
+| `/api/selection/{id}` | DELETE | Remove one movie |
+| `/api/selection/clear` | POST | Empty the queue |
+| `/api/selection/{id}/status` | POST | Set status `{"status": "pending"\|"downloaded"}` |
+
+Selections keep their status (`pending` -> `downloaded` once handed to
+qBittorrent), so re-running `download_selected.py` only processes new picks.
+The agent workflow: start the server, let the user pick movies in the browser,
+then run `download_selected.py` - no per-movie CLI searching needed.
 
 ## Genres
 
