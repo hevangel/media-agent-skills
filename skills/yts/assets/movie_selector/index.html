@@ -112,6 +112,13 @@
     border-radius: 10px; border: 1px solid var(--line);
     box-shadow: 0 12px 40px rgba(0,0,0,.6); background: var(--panel2);
   }
+  #pillTip {
+    position: fixed; z-index: 45; display: none; pointer-events: none;
+    background: #232833; border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 10px; font-size: 12px; color: var(--text); line-height: 1.5;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5); max-width: 240px;
+  }
+  #pillTip b { color: var(--accent2); }
   #status { text-align: center; color: var(--muted); padding: 30px 0; }
   /* queue drawer */
   #drawer {
@@ -238,7 +245,10 @@ async function queueMovie(movie, torrent) {
     title: movie.title_english || movie.title, year: movie.year,
     rating: movie.rating, cover: movie.medium_cover_image,
     torrents: [{ quality: torrent.quality, hash: torrent.hash, url: torrent.url,
-                 size: torrent.size, seeds: torrent.seeds }],
+                 size: torrent.size, seeds: torrent.seeds, type: torrent.type,
+                 video_codec: torrent.video_codec, bit_depth: torrent.bit_depth,
+                 audio_channels: torrent.audio_channels,
+                 date_uploaded: torrent.date_uploaded }],
     quality: torrent.quality,
   };
   const data = await api("/api/selection", {
@@ -273,7 +283,10 @@ function renderQueue() {
       <div class="qinfo">
         <div class="qtitle">${esc(m.title)}</div>
         <div class="qmeta">${esc(m.year || "")} · ${m.quality
-          ? esc(m.quality) + ((m.torrents || [])[0] ? " · " + esc(m.torrents[0].size || "") : "")
+          ? esc(m.quality)
+            + ((m.torrents || [])[0] ? " · " + esc(m.torrents[0].size || "") : "")
+            + (m.torrents && m.torrents[0] && m.torrents[0].type
+              ? " · " + esc(sourceLabel(m.torrents[0].type)) : "")
           : (m.torrents || []).length + " torrent(s)"}</div>
         <span class="status s-${esc(m.status)}">${esc(m.status)}</span>
       </div>
@@ -558,6 +571,12 @@ function ratingBadge(rating) {
   return `<span class="badge ${cls}">${r ? r.toFixed(1) : "N/A"}</span>`;
 }
 
+function sourceLabel(type) {
+  if (type === "bluray") return "Blu-ray";
+  if (type === "web") return "Web";
+  return type ? String(type).charAt(0).toUpperCase() + String(type).slice(1) : "";
+}
+
 function rowHtml(m) {
   const title = m.title_english || m.title || `Movie ${m.id}`;
   const summary = (m.summary || m.description_intro || "").trim();
@@ -569,9 +588,18 @@ function rowHtml(m) {
   const torrentHtml = torrents.length ? torrents.map((t) => {
     const queued = isQueued(t);
     const label = `${t.quality} · ${t.size || "?"}`;
+    const tip = [];
+    const src = sourceLabel(t.type);
+    if (src) tip.push(`Source: <b>${src}</b>`);
+    if (t.video_codec) tip.push(`Video: ${esc(t.video_codec)}${t.bit_depth ? ` ${esc(t.bit_depth)}-bit` : ""}`);
+    if (t.audio_channels) tip.push(`Audio: ${esc(t.audio_channels)} channels`);
+    if (t.date_uploaded) tip.push(`Uploaded: ${esc(String(t.date_uploaded).slice(0, 10))}`);
+    tip.push(`Seeds: ${esc(t.seeds ?? "?")} · Peers: ${esc(t.peers ?? "?")}`);
+    if (String(t.is_repack) === "1") tip.push("⚠️ Repack");
     return `<button class="pill queueQuality ${queued ? "queued" : ""}"
         data-id="${m.id}" data-quality="${esc(t.quality)}" data-label="${esc(label)}"
-        title="Click to ${queued ? "remove from" : "add to"} the queue · seeds ${esc(t.seeds ?? "?")}">
+        data-tip="${tip.join("<br>")}"
+        title="Click to ${queued ? "remove from" : "add to"} the queue">
         ${queued ? "✓" : "＋"} ${esc(label)}</button>`;
   }).join("")
     : `<span style="color:var(--muted)">No torrents</span>`;
@@ -641,16 +669,40 @@ $("rows").addEventListener("click", (e) => {
   }
 });
 
+// quality pill tooltip: source (Blu-ray/Web), codec, audio, upload date
+const pillTip = document.createElement("div");
+pillTip.id = "pillTip";
+document.body.appendChild(pillTip);
+
+function hidePillTip() { pillTip.style.display = "none"; }
+
+function showPillTip(btn) {
+  pillTip.innerHTML = btn.dataset.tip || "";
+  pillTip.style.display = "block";
+  const r = btn.getBoundingClientRect();
+  const vw = Math.max(window.innerWidth, document.documentElement.clientWidth || 0, 1000);
+  const vh = Math.max(window.innerHeight, document.documentElement.clientHeight || 0, 600);
+  let left = r.left + r.width / 2 - pillTip.offsetWidth / 2;
+  left = Math.max(8, Math.min(left, vw - pillTip.offsetWidth - 8));
+  let top = r.top - pillTip.offsetHeight - 8;
+  if (top < 8) top = r.bottom + 8;
+  pillTip.style.left = Math.round(left) + "px";
+  pillTip.style.top = Math.round(top) + "px";
+}
+
 // poster hover preview
 $("rows").addEventListener("mouseover", (e) => {
   const img = e.target.closest("img.posterImg");
-  if (img) showPosterPreview(img);
+  if (img) { hidePillTip(); showPosterPreview(img); return; }
+  const pill = e.target.closest("button.queueQuality");
+  if (pill) { hidePosterPreview(); showPillTip(pill); }
 });
 $("rows").addEventListener("mouseout", (e) => {
   if (e.target.closest("img.posterImg")) hidePosterPreview();
+  if (e.target.closest("button.queueQuality")) hidePillTip();
 });
-window.addEventListener("scroll", hidePosterPreview, true);
-window.addEventListener("wheel", hidePosterPreview, { passive: true });
+window.addEventListener("scroll", () => { hidePosterPreview(); hidePillTip(); }, true);
+window.addEventListener("wheel", () => { hidePosterPreview(); hidePillTip(); }, { passive: true });
 
 /* poster hover preview: floating enlarged cover, hidden on mouse-out,
    scroll, or wheel */
