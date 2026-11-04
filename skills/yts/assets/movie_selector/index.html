@@ -98,6 +98,7 @@
     background: rgba(22,211,162,.12); border-color: var(--accent2); color: var(--accent2);
   }
   #endStatus { text-align: center; color: var(--muted); padding: 18px 0 8px; font-size: 13px; }
+  #trendingBtn.active { background: var(--accent); color: #04222b; border-color: var(--accent); }
   #endStatus button { margin-left: 8px; }
   #queueFab {
     position: fixed; bottom: 24px; right: 24px; z-index: 25;
@@ -163,6 +164,7 @@
         <option value="like_count">Sort: likes</option>
       </select>
       <button id="searchBtn">Search</button>
+      <button id="trendingBtn" class="ghost" title="Show only the movies trending on YTS right now">🔥 Trending</button>
       <button id="queueBtn" class="ghost">Queue (<span id="queueCount" class="queueCountEl">0</span>)</button>
     </div>
   </div>
@@ -209,7 +211,7 @@ const LIMIT = 24;
 const state = { page: 1, movieCount: 0, apiBase: null, selection: new Map(),
   useProxy: localStorage.getItem("ytsUseProxy") === "1",
   loadedMovies: [], loadingMovies: false, totalReached: false,
-  pageCache: new Map(), prefetching: false };
+  pageCache: new Map(), prefetching: false, trending: false };
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g,
@@ -447,6 +449,46 @@ function appendMovies(data, reset) {
   }
 }
 
+async function loadTrending() {
+  // the backend scrapes yts.gg/trending-movies and resolves full details;
+  // first load takes a while (cached server-side for 10 minutes after)
+  state.trending = true;
+  $("trendingBtn").classList.add("active");
+  ["search", "genre", "minRating", "sortBy", "searchBtn"].forEach(
+    (id) => { document.getElementById(id).disabled = true; });
+  $("status").innerHTML = "🔥 Loading trending movies… (first load scrapes YTS, ~15-30s)";
+  $("status").classList.remove("hidden");
+  $("tablewrap").classList.add("hidden");
+  $("endStatus").classList.add("hidden");
+  try {
+    const res = await fetch("/api/trending");
+    const payload = await res.json();
+    if (!res.ok || payload.error) throw new Error(payload.error || `HTTP ${res.status}`);
+    const movies = payload.movies || [];
+    state.page = 1;
+    state.pageCache.clear();
+    state.loadedMovies = movies;
+    state.totalReached = true; // no infinite scroll in trending mode
+    $("rows").innerHTML = movies.map(rowHtml).join("");
+    $("status").classList.add("hidden");
+    $("tablewrap").classList.remove("hidden");
+    $("endStatus").textContent =
+      `🔥 Showing the ${movies.length} movies trending on YTS right now`;
+    $("endStatus").classList.remove("hidden");
+  } catch (err) {
+    $("status").innerHTML = `⚠️ ${esc(err.message)}<br><br>` +
+      `<button onclick="loadTrending()">Retry</button>`;
+  }
+}
+
+function exitTrending() {
+  state.trending = false;
+  $("trendingBtn").classList.remove("active");
+  ["search", "genre", "minRating", "sortBy", "searchBtn"].forEach(
+    (id) => { document.getElementById(id).disabled = false; });
+  loadMovies(true);
+}
+
 function prefetchNext(attempt = 0) {
   // hydrate the next page in the background so scrolling never waits;
   // one silent retry covers transient tunnel flakes
@@ -562,8 +604,16 @@ function refreshQueueButtons(id) {
 
 /* ---------- wiring ---------- */
 
-$("searchBtn").addEventListener("click", () => loadMovies(true));
-$("search").addEventListener("keydown", (e) => { if (e.key === "Enter") loadMovies(true); });
+$("searchBtn").addEventListener("click", () => {
+  if (state.trending) { exitTrending(); return; }
+  loadMovies(true);
+});
+$("search").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { if (state.trending) { exitTrending(); return; } loadMovies(true); }
+});
+$("trendingBtn").addEventListener("click", () => {
+  if (state.trending) exitTrending(); else loadTrending();
+});
 $("genre").innerHTML = `<option value="">Genre: all</option>` +
   GENRES.map((g) => `<option value="${g}">${g}</option>`).join("");
 

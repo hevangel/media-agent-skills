@@ -20,8 +20,11 @@ import argparse
 import atexit
 import ipaddress
 import os
+import re
 import socket
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -143,6 +146,95 @@ async def proxy_image(request: Request) -> Response:
         return Response(f"image proxy failed: {exc}", status_code=502)
 
 
+# ---- trending: scrape yts.gg/trending-movies, resolve ids, fetch details ----
+
+TRENDING_TTL = 600.0  # seconds
+TRENDING_CACHE: dict = {"movies": None, "at": 0.0}
+
+
+def _fetch_text(url: str) -> str:
+    """Fetch an HTML/text page (threadpool). Inline validation: allowlisted
+    host only, path restricted to safe characters, resolved IPs public."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or (parsed.hostname or "") != "yts.gg":
+        raise ValueError(f"blocked non-allowlisted fetch: {url[:100]}")
+    if not re.fullmatch(r"/[A-Za-z0-9/._-]*", parsed.path) or ".." in parsed.path:
+        raise ValueError(f"blocked unsafe path: {parsed.path[:80]}")
+    try:
+        infos = socket.getaddrinfo(parsed.hostname, 443, proto=socket.IPPROTO_TCP)
+    except socket.gaierror:
+        infos = []
+    for info in infos:
+        addr = ipaddress.ip_address(info[4][0])
+        if (addr.is_loopback or addr.is_private or addr.is_link_local
+                or addr.is_reserved or addr.is_multicast or addr.is_unspecified):
+            raise ValueError(f"blocked private/reserved address for {parsed.hostname}: {addr}")
+    resp = requests.get(url, timeout=30, headers=PROXY_UA, **_proxy_kwargs())
+    resp.raise_for_status()
+    return resp.text
+
+
+def _trending_slugs(html: str) -> list:
+    """Ordered movie slugs from the trending page's cards."""
+    return re.findall(
+        r'href="https://yts\.gg/movies/([a-z0-9-]+)"\s+class="browse-movie-link"',
+        html)
+
+
+def _movie_id_for_slug(slug: str) -> int | None:
+    """Fetch the movie page and extract its data-movie-id."""
+    try:
+        html = _fetch_text(f"https://yts.gg/movies/{slug}")
+    except requests.RequestException:
+        return None
+    match = re.search(r'data-movie-id="(\d+)"', html)
+    return int(match.group(1)) if match else None
+
+
+def _fetch_movie_details(movie_id: int) -> dict | None:
+    """Fetch movie_details.json for one id (threadpool). Inline validation."""
+    url = "https://yts.gg/api/v2/movie_details.json"  # fixed allowlisted endpoint
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or parsed.hostname not in YTS_HOSTS:
+        raise ValueError(f"blocked non-allowlisted request target: {url}")
+    for info in socket.getaddrinfo(parsed.hostname, 443, proto=socket.IPPROTO_TCP):
+        addr = ipaddress.ip_address(info[4][0])
+        if (addr.is_loopback or addr.is_private or addr.is_link_local
+                or addr.is_reserved or addr.is_multicast or addr.is_unspecified):
+            raise ValueError(f"blocked private/reserved address for {parsed.hostname}: {addr}")
+    resp = requests.get(url, params={"movie_id": movie_id,
+                                     "with_images": "true", "with_cast": "false"},
+                        timeout=30, headers=PROXY_UA, **_proxy_kwargs())
+    resp.raise_for_status()
+    return resp.json().get("data", {}).get("movie")
+
+
+def _build_trending() -> list:
+    html = _fetch_text("https://yts.gg/trending-movies")
+    slugs = _trending_slugs(html)
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        ids = list(pool.map(_movie_id_for_slug, slugs))
+    ids = [mid for mid in ids if mid]
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        movies = list(pool.map(_fetch_movie_details, ids))
+    return [m for m in movies if m]
+
+
+async def trending_movies(request: Request) -> JSONResponse:
+    """Full movie objects for yts.gg/trending-movies, in site order, cached."""
+    now = time.monotonic()
+    if TRENDING_CACHE["movies"] and now - TRENDING_CACHE["at"] < TRENDING_TTL:
+        return JSONResponse({"movies": TRENDING_CACHE["movies"]})
+    try:
+        movies = await run_in_threadpool(_build_trending)
+        TRENDING_CACHE["movies"] = movies
+        TRENDING_CACHE["at"] = time.monotonic()
+        print(f"[progress] trending: {len(movies)} movie(s) loaded")
+        return JSONResponse({"movies": movies})
+    except (ValueError, requests.RequestException) as exc:
+        return JSONResponse({"error": f"trending fetch failed: {exc}"}, status_code=502)
+
+
 async def index(request: Request) -> FileResponse:
     return FileResponse(INDEX_HTML, media_type="text/html")
 
@@ -202,6 +294,7 @@ routes = [
     Route("/", index),
     Route("/api/movies", proxy_movies),
     Route("/api/img", proxy_image),
+    Route("/api/trending", trending_movies),
     Route("/api/selection", get_selection, methods=["GET"]),
     Route("/api/selection", add_selection, methods=["POST"]),
     Route("/api/selection/clear", clear_selection, methods=["POST"]),

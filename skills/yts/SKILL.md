@@ -94,7 +94,18 @@ if movies:
 
 A local web app (`assets/movie_selector/index.html`, served by
 `movie_selector_server.py`) for picking movies visually: a table with poster,
-screencap, plot summary, IMDb rating, and torrent links per quality.
+screencap, plot summary, IMDb rating, and torrent links per quality. Hovering
+a poster shows an enlarged preview; screencaps are carousels with prev/next
+arrows over YTS's numbered stills; the list uses infinite scroll with the
+next page prefetched in the background.
+
+**🔥 Trending toggle**: shows only the movies currently trending on
+yts.gg/trending-movies, in site order. The backend scrapes the trending page,
+resolves each movie's id from its page, and fetches full details
+(`movie_details.json`) with a 6-way thread pool - first load ~15-30s, then
+cached server-side for 10 minutes. Search/sort controls are disabled while
+trending is active; clicking Search or the toggle again returns to the
+normal newest-first list.
 
 The browser queries the YTS API directly when it can (the API is
 CORS-enabled). When the YTS mirrors are unreachable from the browser's network
