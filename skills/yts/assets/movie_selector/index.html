@@ -218,7 +218,8 @@ const LIMIT = 24;
 const state = { page: 1, movieCount: 0, apiBase: null, selection: new Map(),
   useProxy: localStorage.getItem("ytsUseProxy") === "1",
   loadedMovies: [], loadingMovies: false, totalReached: false,
-  pageCache: new Map(), prefetching: false, trending: false };
+  pageCache: new Map(), prefetching: false, trending: false,
+  seenKeys: new Set() };
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g,
@@ -439,9 +440,35 @@ window.slideError = function (img, original) {
   if (wasVisible) showSlide(carousel, Math.min(index, slides.length - 1));
 };
 
+function dedupeKey(m) {
+  const title = (m.title_english || m.title || "").toLowerCase();
+  return (m.imdb_code || `${title}/${m.year || ""}`).toLowerCase();
+}
+
+/* Drop duplicate movie rows: the YTS feed re-lists some titles (re-uploads).
+   Duplicates inside one batch collapse to the upload with the most torrents;
+   keys already shown on earlier pages are skipped entirely. */
+function dedupeBatch(movies, seenKeys) {
+  const out = [];
+  const index = new Map();
+  for (const m of movies) {
+    const key = dedupeKey(m);
+    if (seenKeys.has(key)) continue;
+    const i = index.get(key);
+    if (i === undefined) {
+      index.set(key, out.length);
+      out.push(m);
+    } else if ((m.torrents || []).length > (out[i].torrents || []).length) {
+      out[i] = m;
+    }
+  }
+  for (const m of out) seenKeys.add(dedupeKey(m));
+  return out;
+}
+
 function appendMovies(data, reset) {
   state.movieCount = data.movie_count || 0;
-  const movies = data.movies || [];
+  const movies = dedupeBatch(data.movies || [], state.seenKeys);
   state.loadedMovies.push(...movies);
   $("rows").insertAdjacentHTML("beforeend", movies.map(rowHtml).join(""));
   if (reset) {
@@ -477,7 +504,7 @@ async function loadTrending() {
     const res = await fetch("/api/trending");
     const payload = await res.json();
     if (!res.ok || payload.error) throw new Error(payload.error || `HTTP ${res.status}`);
-    const movies = payload.movies || [];
+    const movies = dedupeBatch(payload.movies || [], state.seenKeys);
     state.page = 1;
     state.pageCache.clear();
     state.loadedMovies = movies;
@@ -530,6 +557,7 @@ async function loadMovies(reset) {
     state.loadedMovies = [];
     state.totalReached = false;
     state.pageCache.clear();
+    state.seenKeys.clear();
     hidePosterPreview();
     $("rows").innerHTML = "";
     $("tablewrap").classList.add("hidden");
@@ -582,12 +610,18 @@ function rowHtml(m) {
   const summary = (m.summary || m.description_intro || "").trim();
   const torrents = (m.torrents || []).filter((t) => t.hash);
   const sel = state.selection.get(m.id);
-  const isQueued = (t) => !!(sel && (sel.quality
-    ? sel.quality === t.quality
-    : (sel.torrents || []).some((x) => x.hash === t.hash)));
+  const hashes = torrents.map((t) => t.hash);
+  const uniqHash = new Set(hashes).size === hashes.length;
+  const keyOf = (t) => uniqHash
+    ? "h:" + t.hash
+    : "c:" + t.quality + "|" + (t.type || "") + "|" + (t.size || "");
+  const isQueued = (t) => !!(sel && (sel.torrents || []).some((x) => keyOf(x) === keyOf(t)));
+  const qualityCounts = {};
+  torrents.forEach((t) => { qualityCounts[t.quality] = (qualityCounts[t.quality] || 0) + 1; });
   const torrentHtml = torrents.length ? torrents.map((t) => {
     const queued = isQueued(t);
-    const label = `${t.quality} · ${t.size || "?"}`;
+    const dup = qualityCounts[t.quality] > 1;
+    const label = `${t.quality}${dup && t.video_codec ? " · " + t.video_codec : ""} · ${t.size || "?"}`;
     const tip = [];
     const src = sourceLabel(t.type);
     if (src) tip.push(`Source: <b>${src}</b>`);
@@ -597,7 +631,8 @@ function rowHtml(m) {
     tip.push(`Seeds: ${esc(t.seeds ?? "?")} · Peers: ${esc(t.peers ?? "?")}`);
     if (String(t.is_repack) === "1") tip.push("⚠️ Repack");
     return `<button class="pill queueQuality ${queued ? "queued" : ""}"
-        data-id="${m.id}" data-quality="${esc(t.quality)}" data-label="${esc(label)}"
+        data-id="${m.id}" data-quality="${esc(t.quality)}" data-hash="${esc(t.hash)}"
+        data-key="${esc(keyOf(t))}" data-label="${esc(label)}"
         data-tip="${tip.join("<br>")}"
         title="Click to ${queued ? "remove from" : "add to"} the queue">
         ${queued ? "✓" : "＋"} ${esc(label)}</button>`;
@@ -623,8 +658,15 @@ function rowHtml(m) {
 
 function refreshQueueButtons(id) {
   const sel = state.selection.get(id);
+  const movie = state.loadedMovies.find((m) => m.id === id);
+  const torrents = (movie && movie.torrents || []).filter((t) => t.hash);
+  const uniqHash = new Set(torrents.map((t) => t.hash)).size === torrents.length;
+  const keyOf = (t) => uniqHash
+    ? "h:" + t.hash
+    : "c:" + t.quality + "|" + (t.type || "") + "|" + (t.size || "");
+  const selKeys = new Set(((sel && sel.torrents) || []).map(keyOf));
   document.querySelectorAll(`button.queueQuality[data-id="${id}"]`).forEach((btn) => {
-    const queued = !!(sel && sel.quality === btn.dataset.quality);
+    const queued = selKeys.has(btn.dataset.key);
     btn.textContent = (queued ? "✓" : "＋") + " " + btn.dataset.label;
     btn.classList.toggle("queued", queued);
   });
@@ -661,10 +703,16 @@ $("rows").addEventListener("click", (e) => {
     const id = Number(qbtn.dataset.id);
     const movie = state.loadedMovies.find((m) => m.id === id);
     if (!movie) return;
-    const torrent = (movie.torrents || []).find((t) => t.quality === qbtn.dataset.quality);
+    const torrents = (movie.torrents || []).filter((t) => t.hash);
+    const uniqHash = new Set(torrents.map((t) => t.hash)).size === torrents.length;
+    const torrent = torrents.find((t) => (uniqHash ? "h:" + t.hash
+      : "c:" + t.quality + "|" + (t.type || "") + "|" + (t.size || "")) === qbtn.dataset.key);
     if (!torrent) return;
     const sel = state.selection.get(id);
-    if (sel && sel.quality === qbtn.dataset.quality) unqueueMovie(id);
+    const alreadyQueued = !!(sel && (sel.torrents || []).some((x) =>
+      (uniqHash ? "h:" + x.hash
+        : "c:" + x.quality + "|" + (x.type || "") + "|" + (x.size || "")) === qbtn.dataset.key));
+    if (alreadyQueued) unqueueMovie(id);
     else queueMovie(movie, torrent);
   }
 });

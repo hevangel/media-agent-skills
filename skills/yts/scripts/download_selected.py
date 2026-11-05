@@ -28,11 +28,13 @@ FALLBACK_ORDER = ["2160p", "1080p", "720p"]
 
 
 def pick_torrent(movie: dict, preferred: str) -> tuple[dict | None, str | None]:
-    """Choose the torrent: the movie's explicitly queued quality first (set by
-    the web UI quality buttons), then the CLI preference, then best available.
-    Returns (torrent, fallback) where fallback is set when the queued/preferred
-    quality was unavailable."""
+    """Choose the torrent. A per-quality web-UI queue entry stores exactly one
+    torrent (with its hash) - use it verbatim. Older entries / CLI runs fall
+    back to quality matching: the movie's queued quality, then the CLI
+    preference, then best available. Returns (torrent, fallback)."""
     torrents = movie.get("torrents") or []
+    if movie.get("quality") and len(torrents) == 1 and torrents[0].get("hash"):
+        return torrents[0], None
     wanted = movie.get("quality") or preferred
     for torrent in torrents:
         if torrent.get("quality") == wanted:
